@@ -2,6 +2,9 @@ spring:
   application:
     name: eureka-service
 
+server:
+  port: 8302
+
 eureka:
   client:
     registerWithEureka: false
