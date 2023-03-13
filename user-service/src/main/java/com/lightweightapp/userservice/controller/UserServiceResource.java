@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
-@RequestMapping("/rest/user-service")
+@RequestMapping("/user")
 public class UserServiceResource {
 
     private UserRepository userRepository;
