@@ -6,9 +6,9 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8302/eureka
 
-##spring:
-#  application:
-#    name: cloud-gateway
+spring:
+  application:
+    name: cloud-gateway
 #  cloud:
 #    gateway:
 #      routes:

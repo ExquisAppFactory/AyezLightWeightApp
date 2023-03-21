@@ -5,6 +5,10 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "users", schema = "light_weight_app")
 public class User {
+
+    public static final String ACTIVE_USER = "active";
+    public static final String IN_ACTIVE_USER = "in_active";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -23,8 +27,7 @@ public class User {
     public User() {
     }
 
-    public User(int id, String firstName, String lastName, String email, String password, String status) {
-        this.id = id;
+    public User(String firstName, String lastName, String email, String password, String status) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;

@@ -57,13 +57,7 @@ public class JwtAuthenticationFilter implements GatewayFilter {
             Claims claims = jwtUtil.getClaims(token);
             exchange.getRequest().mutate().header("id", String.valueOf(claims.get("id"))).build();
         }
-        else
-        {
-            ServerHttpResponse response = exchange.getResponse();
-            response.setStatusCode(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
 
-            return response.setComplete();
-        }
 
         return chain.filter(exchange);
     }
