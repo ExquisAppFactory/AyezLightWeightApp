@@ -27,4 +27,14 @@ public class UserRequestValidation {
         }
         return responseErr;
     }
+
+
+    public static String validateBasicAuthRequest(String authData)
+    {
+        String responseErr = null;
+        if(authData == null || authData.isEmpty())
+            responseErr = "User email is required";
+        return responseErr;
+    }
+
 }

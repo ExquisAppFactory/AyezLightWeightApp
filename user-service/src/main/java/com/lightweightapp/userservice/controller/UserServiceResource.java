@@ -2,6 +2,7 @@ package com.lightweightapp.userservice.controller;
 
 import com.lightweightapp.userservice.configuration.RabbitMqMessagingConfig;
 import com.lightweightapp.userservice.dbResource.User;
+import com.lightweightapp.userservice.model.UserAuthResponseModel;
 import com.lightweightapp.userservice.model.UserModel;
 import com.lightweightapp.userservice.model.UserResponseModel;
 import com.lightweightapp.userservice.model.UserVerificationModel;
@@ -10,14 +11,15 @@ import com.lightweightapp.userservice.service.UserRequestValidation;
 import com.lightweightapp.userservice.util.JwtUtil;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
@@ -35,6 +37,9 @@ public class UserServiceResource {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     @GetMapping("/{userid}")
     public UserResponseModel getUser(@PathVariable("userid") final int userid)
@@ -70,10 +75,11 @@ public class UserServiceResource {
                 User savedUserInfo = userRepository.save(new User(user.getFirstName(), user.getLastName(), user.getEmail(), encodedPassword, user.getStatus()));
 
                 /**
-                 * A verification email is sent to the user to verify it email credential. This verification payload is sent to the email service to consume and process
+                 * A verification email is sent to the user to verify the email credential. This verification payload is sent to the email service to consume and process
                  */
+                String validationToken = UUID.randomUUID().toString();
 
-                UserVerificationModel userVerificationModel = new UserVerificationModel(savedUserInfo.getId(), savedUserInfo.getEmail());
+                UserVerificationModel userVerificationModel = new UserVerificationModel(savedUserInfo.getId(), savedUserInfo.getEmail(), savedUserInfo.getFirstName(), validationToken);
                 template.convertAndSend(RabbitMqMessagingConfig.EXCHANGE, RabbitMqMessagingConfig.ROUTING_KEY, userVerificationModel);
 
                 /**
@@ -109,12 +115,49 @@ public class UserServiceResource {
 
     }
 
-    @PostMapping("/auth/login")
-    public ResponseEntity<String> login(@RequestHeader(HttpHeaders.AUTHORIZATION) String key, @RequestBody String email,@RequestBody String password )
+    @PostMapping("/login")
+    public UserAuthResponseModel authUser(@RequestHeader(value="Authorization") String basicAuthData)
     {
+        String requestValidationResponse = UserRequestValidation.validateBasicAuthRequest(basicAuthData);
+        if(requestValidationResponse == null)
+        {
+            String credentials = basicAuthData.split(" ")[1];
+            byte[] decodedCredentials = Base64.getDecoder().decode(credentials);
+            String decodedCredentialstring = new String(decodedCredentials);
+            String email = decodedCredentialstring.split(":")[0];
+            String password = decodedCredentialstring.split(":")[1];
 
-        String token = jwtUtil.generateToken(key);
-        return new ResponseEntity<String>(token, HttpStatus.OK);
+            User checkedForUser = userRepository.findByEmail(email);
+            if(checkedForUser != null)
+            {
+                BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+                boolean ifPasswordMatches = bCryptPasswordEncoder.matches(password, checkedForUser.getPassword());
+
+                String token = jwtUtil.generateToken(jwtSecret);
+
+                UserAuthResponseModel userAuthResponseModel = new UserAuthResponseModel();
+                userAuthResponseModel.setResponseMessage("User auth success");
+                userAuthResponseModel.setRequestStatus(HttpStatus.OK.getReasonPhrase());
+                UserAuthResponseModel.Data data = userAuthResponseModel.new Data();
+                data.setToken(token);
+                userAuthResponseModel.setData(data);
+                return userAuthResponseModel;
+            }
+            else
+            {
+                UserAuthResponseModel userAuthResponseModel = new UserAuthResponseModel();
+                userAuthResponseModel.setResponseMessage("Invalid Credentials! No such user found!");
+                userAuthResponseModel.setRequestStatus(HttpStatus.BAD_REQUEST.getReasonPhrase());
+                return userAuthResponseModel;
+            }
+        }
+        else {
+            UserAuthResponseModel userAuthResponseModel = new UserAuthResponseModel();
+            userAuthResponseModel.setResponseMessage(requestValidationResponse);
+            userAuthResponseModel.setRequestStatus(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return userAuthResponseModel;
+        }
+
     }
 
 }
