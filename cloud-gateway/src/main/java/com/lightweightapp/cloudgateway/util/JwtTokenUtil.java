@@ -50,6 +50,7 @@ public class JwtTokenUtil {
     public void validateToken(final String token) throws JwtTokenMalformedException, JwtTokenMissingException {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            System.out.print(token);
         } catch (SignatureException ex) {
             throw new JwtTokenMalformedException("Invalid JWT signature");
         } catch (MalformedJwtException ex) {

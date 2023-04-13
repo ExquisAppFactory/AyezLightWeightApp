@@ -16,10 +16,10 @@ public class MessageConsumer {
     @RabbitListener(queues = MessageQueueConfig.QUEUE)
     public void consumerMessageFromQueueForUserVerification(UserVerificationModel userVerificationModel)
     {
-        System.out.println("Hi");
-        String emailBody  = EmailMessageModel.emailMessage(userVerificationModel.getFirstName());
+        System.out.println("Hi " + userVerificationModel.getFirstName() + " this is your message.");
+        /*String emailBody  = EmailMessageModel.emailMessage(userVerificationModel.getFirstName());
         String emailRecipient = userVerificationModel.getEmail();
         String emailSubject = "Verify Your Email";
-        emailSenderService.sendEmail( emailRecipient, emailSubject,  emailBody);
+        emailSenderService.sendEmail( emailRecipient, emailSubject,  emailBody);*/
     }
 }
