@@ -21,7 +21,8 @@ public class JwtTokenUtil {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+    //Temporarily set to 5 hours
+    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60 * 1000;
 
     public Claims getClaims(final String token) {
         try {
@@ -36,7 +37,7 @@ public class JwtTokenUtil {
     //while creating the token -
     //1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
     //2. Sign the JWT using the HS512 algorithm and secret key.
-    //3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
+    //3. Using to JWS Compact Serialization
     //   compaction of the JWT to a URL-safe string
     public String generateToken(String id) {
         Claims claims = Jwts.claims().setSubject(id);
