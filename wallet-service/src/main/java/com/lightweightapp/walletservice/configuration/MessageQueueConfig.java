@@ -1,4 +1,4 @@
-package com.lightweightapp.userservice.configuration;
+package com.lightweightapp.walletservice.configuration;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class RabbitMqMessagingConfig {
+public class MessageQueueConfig {
 
     public static final String QUEUE = "user_service_queue";
     public static final String EXCHANGE = "user_service_exchange";
     public static final String ROUTING_KEY = "user_service_routing_key";
-    public static final String ROUTING_KEY_WALLET = "user_wallet_routing_key";
+
 
     @Bean
     public Queue queue()
